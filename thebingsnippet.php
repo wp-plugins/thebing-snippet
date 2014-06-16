@@ -241,7 +241,7 @@ class Thebing_WP_Snippet {
 	 */
 	private static function getTcFeedback($sServer, $sCombinationKey, $sTemplateKey) {
 
-		$oSnippet = new Thebing_Snippet($sServer . '/system/extensions/feedback.php', $sCombinationKey, $sTemplateKey);
+		$oSnippet = new Thebing_Snippet($sServer, $sCombinationKey, $sTemplateKey);
 		$oSnippet->execute();
 		$sContent = $oSnippet->getContent();
 
