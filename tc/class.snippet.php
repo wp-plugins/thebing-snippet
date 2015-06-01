@@ -4,23 +4,55 @@ require(dirname(__FILE__) . "/Snoopy.class.php");
 
 /**
  * Snippet class
- * 
- * ACHTUNG: Die Snippet-Klasse unterstützt aktuell keine PHP-Sessions! 
+ *
+ * ACHTUNG: Die Snippet-Klasse unterstützt aktuell keine PHP-Sessions!
  * Das könnte aber noch ergänzt werden
  *
  * @author	plan-i GmbH <info@plan-i.de>
  */
 class Thebing_Snippet {
 
+	/**
+	 * @var string
+	 */
 	protected $_sUrl;
+
+	/**
+	 * @var string
+	 */
 	protected $_sCode;
+
+	/**
+	 * @var string
+	 */
 	protected $_sTemplate;
+
+	/**
+	 * @var int
+	 */
 	protected $_iTimeout = 10;
+
+	/**
+	 * @var
+	 */
 	protected $_sContent;
+
+	/**
+	 * @var string
+	 */
 	protected $_sCharset = 'utf-8';
 
+	/**
+	 * @var array
+	 */
 	protected $_aUserParams = array();
 
+	/**
+	 * @param string $sUrl
+	 * @param string $sCode
+	 * @param string $sTemplate
+	 * @param string $sCharset
+	 */
 	public function __construct($sUrl, $sCode, $sTemplate, $sCharset='utf-8') {
 
 		$this->_sUrl = $sUrl;
@@ -30,6 +62,9 @@ class Thebing_Snippet {
 
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getContent() {
 
 		$sContent = $this->_sContent;
@@ -39,36 +74,45 @@ class Thebing_Snippet {
 		}
 
 		return $sContent;
-
 	}
 
+	/**
+	 * @param int $iTimeout
+	 */
 	public function setTimeout($iTimeout) {
 		$this->_iTimeout = $iTimeout;
 	}
 
+	/**
+	 * @param string $sInput
+	 */
 	public function convertInput(&$sInput) {
+
 		if(is_scalar($sInput)) {
 			$sInput = iconv($this->_sCharset, 'utf-8//TRANSLIT', $sInput);
 		}
+
 	}
-	
+
+	/**
+	 * @return array
+	 */
 	protected function _getRequest() {
-		
-		$_REQUEST['REQUEST_URI'] = $_SERVER['REQUEST_URI'];	
+
+		$_REQUEST['REQUEST_URI'] = $_SERVER['REQUEST_URI'];
 		$aRequest = $_REQUEST;
-		
+
 		if($this->_sCharset != 'utf-8') {
 			array_walk_recursive($aRequest, array($this, 'convertInput'));
 		}
 
 		return $aRequest;
-		
 	}
-	
+
 	/**
 	 * The main method of the PlugIn
 	 *
-	 * @return	string The content that is displayed on the website
+	 * @return string The content that is displayed on the website
 	 */
 	function execute() {
 
@@ -86,7 +130,7 @@ class Thebing_Snippet {
 			$sContent .= ' (URL: '.$sUrl.', Code: '.$sCode.', Template: '.$sTemplate.')';
 
 		} else {
-			
+
 			$oSnoopy = new Snoopy;
 			$oSnoopy->read_timeout = $this->_iTimeout;
 
@@ -96,7 +140,7 @@ class Thebing_Snippet {
 			$aVariables = array();
 
 			$aRequest = $this->_getRequest();
-			
+
 			// Add all request parameters to snoopy request
 			if(!empty($aRequest)) {
 				foreach((array)$aRequest as $mKey=>$mValue) {
@@ -116,33 +160,25 @@ class Thebing_Snippet {
 
 			if(!empty($_FILES)) {
 
-				// Check temporary directory
-				$sTempDir = $oSnoopy->temp_dir;
-				if(!is_dir($sTempDir) || !is_writable($sTempDir.'/test')) {
-					$sTempDir = dirname(__FILE__).'/tmp';
-					if(!is_dir($sTempDir)) {
-						mkdir($sTempDir, 0777);
-						chmod($sTempDir, 0777);
-					}
+				$sTempDir = sys_get_temp_dir();
+				if(!is_writeable($sTempDir)) {
+					// @TODO: Sollte man so umbauen, damit das irgendwo initial direkt geprüft wird
+					die('Fatal error while uploading file');
 				}
 
 				// Save all files to temporary directory
-				foreach((array)$_FILES as $sKey => $mItems)
-				{
-					if(!is_array($mItems['name']))
-					{
+				foreach((array)$_FILES as $sKey => $mItems) {
+					if(!is_array($mItems['name'])) {
 						$sTarget = $sTempDir . '/' . $mItems['name'];
 						$bSuccess = move_uploaded_file($mItems['tmp_name'], $sTarget);
-
 						if($bSuccess) {
 							$aFiles[$sKey] = $sTarget;
 						}
-					}
-					else
-					{
+					} else {
 						$this->_prepareFiles($mItems['name'], $mItems['tmp_name'], $aFiles[$sKey], $sTempDir);
 					}
 				}
+
 			}
 
 			// Website Session ID entfernen
@@ -176,7 +212,7 @@ class Thebing_Snippet {
 				) ||
 				isset($_REQUEST['get_request']) ||
 				isset($_REQUEST['get_file'])
-				
+
 			) {
 
 				foreach((array)$oSnoopy->headers as $sHeader) {
@@ -184,7 +220,7 @@ class Thebing_Snippet {
 						header($sHeader);
 					}
 				}
-				
+
 				// OB beenden
 				while(ob_get_level() > 0) {
 					ob_end_clean();
@@ -225,52 +261,58 @@ class Thebing_Snippet {
 				}
 			}
 
-			if(!empty($aFiles))
-			{
+			if(!empty($aFiles)) {
 				$this->_unlinkFiles($aFiles);
 			}
+
 		}
 
 		$this->_sContent = $sContent;
 
 	}
 
-	protected function _prepareFiles($mItems, $mTmpItems, &$aFiles, $sTempDir)
-	{
-		foreach((array)$mItems as $sKey => $aItems)
-		{
-			if(!is_array($aItems))
-			{
+	/**
+	 * @param mixed|array $mItems
+	 * @param mixed|array $mTmpItems
+	 * @param array $aFiles
+	 * @param string $sTempDir
+	 */
+	protected function _prepareFiles($mItems, $mTmpItems, &$aFiles, $sTempDir) {
+
+		foreach((array)$mItems as $sKey => $aItems) {
+			if(!is_array($aItems)) {
 				$sTarget = $sTempDir . '/' . $mItems[$sKey];
 				$bSuccess = move_uploaded_file($mTmpItems[$sKey], $sTarget);
-
 				if($bSuccess) {
 					$aFiles[$sKey] = $sTarget;
 				}
-			}
-			else
-			{
+			} else {
 				$this->_prepareFiles($mItems[$sKey], $mTmpItems[$sKey], $aFiles[$sKey], $sTempDir);
 			}
 		}
+
 	}
 
-	protected function _unlinkFiles(&$aFiles)
-	{
-		foreach((array)$aFiles as $mKey => $mFile)
-		{
-			if(is_array($mFile))
-			{
+	/**
+	 * @param array $aFiles
+	 */
+	protected function _unlinkFiles(&$aFiles) {
+
+		foreach((array)$aFiles as $mKey => $mFile) {
+			if(is_array($mFile)) {
 				$this->_unlinkFiles($aFiles[$mKey]);
-			}
-			else if(is_file($mFile))
-			{
+			} else if(is_file($mFile)) {
 				unlink($mFile);
 			}
 		}
+
 	}
-	
-	public function encodeString(&$sString, $sKey=false) {
+
+	/**
+	 * @param string $sString
+	 * @param bool|string $sKey
+	 */
+	public function encodeString(&$sString, $sKey = false) {
 		global $aConfig;
 
 		if(
@@ -282,7 +324,11 @@ class Thebing_Snippet {
 
 	}
 
-	public function decodeString(&$sString, $sKey=false) {
+	/**
+	 * @param string $sString
+	 * @param bool|string $sKey
+	 */
+	public function decodeString(&$sString, $sKey = false) {
 		global $aConfig;
 
 		if(
@@ -294,6 +340,10 @@ class Thebing_Snippet {
 
 	}
 
+	/**
+	 * @param bool $sHost
+	 * @return bool|string
+	 */
 	public function getHostUrl($sHost=false) {
 
 		if(!empty($sHost) && strpos($sHost, 'http') === false) {
@@ -301,20 +351,18 @@ class Thebing_Snippet {
 		}
 
 		return $sHost;
-
 	}
 
 	/**
 	 * Manipulate combination settings
-	 * 
+	 *
 	 * @param string $sKey
 	 * @param mixed $mValue
 	 * @return Thebing_Snippet
 	 */
-	public function setCombinationParameter($sKey, $mValue)
-	{
+	public function setCombinationParameter($sKey, $mValue) {
 		$this->_aUserParams[$sKey] = $mValue;
-
 		return $this;
 	}
+
 }

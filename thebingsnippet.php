@@ -1,13 +1,13 @@
 <?php
 /**
-* Plugin Name: Thebing Snippet
-* Plugin URI: http://www.thebing.com
-* Description: The plugin links the forms for thebing management school & agency software
-* Version: 1.0
-* Author: Thebing Services GmbH
-* Author URI: http://www.thebing.com
-* License: GPLv2
-*/
+ * Plugin Name: Thebing Snippet
+ * Plugin URI: http://www.thebing.com
+ * Description: The plugin links the forms for thebing management school & agency software
+ * Version: 1.0
+ * Author: Thebing Services GmbH
+ * Author URI: http://www.thebing.com
+ * License: GPLv2
+ */
 
 require_once(__DIR__.'/tc/class.snippet.php');
 
@@ -39,21 +39,21 @@ class Thebing_WP_Snippet {
 	 *     type = tsFeedback -> $attributes('type', 'server', 'key', 'language')
 	 * 	   type = tsPlacementTest -> $attributes('type', 'server', 'key', ['language'], ['currencyid'], ['currencyiso'])
 	 * 	   type = tsRegistrationForm -> $attributes('type', 'server', ['key'], ['language'])
-	 * 	   type = tcFeedback -> $attributes('type', 'server', 'combinationkey', 'templatekey')
+	 * 	   type = default -> $attributes('type', 'server', 'combinationkey', 'templatekey')
 	 *
 	 * @return string
 	 */
 	static public function getContent($attributes) {
 
 		$tagAttributes = shortcode_atts(array(
-				'type' => '',
-				'server' => '',
-				'combinationkey' => '',
-				'templatekey' => '',
-				'key' => '',
-				'language' => '',
-				'currencyid' => '',
-				'currencyiso' => ''
+			'type' => 'default',
+			'server' => '',
+			'combinationkey' => '',
+			'templatekey' => '',
+			'key' => '',
+			'language' => '',
+			'currencyid' => '',
+			'currencyiso' => ''
 		), $attributes);
 
 		$sContent = '';
@@ -67,8 +67,8 @@ class Thebing_WP_Snippet {
 			case 'tsRegistrationForm':
 				$sContent = self::getRegistrationForm($tagAttributes['server'], $tagAttributes['key'], $tagAttributes['language']);
 				break;
-			case 'tcFeedback':
-				$sContent = self::getTcFeedback($tagAttributes['server'], $tagAttributes['combinationkey'], $tagAttributes['templatekey']);
+			case 'default':
+				$sContent = self::getDefault($tagAttributes['server'], $tagAttributes['combinationkey'], $tagAttributes['templatekey']);
 				break;
 		}
 
@@ -239,28 +239,13 @@ class Thebing_WP_Snippet {
 	 * @param string $sTemplateKey
 	 * @return string
 	 */
-	private static function getTcFeedback($sServer, $sCombinationKey, $sTemplateKey) {
+	private static function getDefault($sServer, $sCombinationKey, $sTemplateKey) {
 
 		$oSnippet = new Thebing_Snippet($sServer, $sCombinationKey, $sTemplateKey);
 		$oSnippet->execute();
 		$sContent = $oSnippet->getContent();
 
 		return $sContent;
-	}
-
-	/**
-	 * @param array $aFiles
-	 */
-	private static function __unlinkFiles(&$aFiles) {
-
-		foreach((array)$aFiles as $mKey => $mFile) {
-			if(is_array($mFile)) {
-				self::__unlinkFiles($aFiles[$mKey]);
-			}
-			else if(is_file($mFile)) {
-				unlink($mFile);
-			}
-		}
 	}
 
 	/**

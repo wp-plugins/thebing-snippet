@@ -19,6 +19,9 @@ The plugin allows you to link the forms of the Thebing Management School & Agenc
 2. Active the plugin through the "Plugins" menu in Wordpress
 3. Place "[thebingsnippet]" in your sites/posts
 
+= If you want to show form/templates with template- and combinationkey add: =
+[thebingsnippet type="default" server="https://schoolname.thebing.com" combinationkey="123456789" templatekey="123456789"]
+
 = If you want to show the feedback form add: =
 [thebingsnippet type="tsFeedback" server="https://schoolname.thebing.com" key="KEY-0123456789" language="en"]
 
