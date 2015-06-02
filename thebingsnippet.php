@@ -161,25 +161,24 @@ class Thebing_WP_Snippet {
 		$aFiles = array();
 
 		if(!empty($_FILES)) {
-			$sTempDir = $oSnoopy->temp_dir;
-			if(!is_dir($sTempDir) || !is_writable($sTempDir.'/test')) {
-				$sTempDir = dirname(__FILE__).'/tmp';
-				if(!is_dir($sTempDir)) {
-					mkdir($sTempDir, 0777);
-					chmod($sTempDir, 0777);
-				}
+
+			$sTempDir = sys_get_temp_dir();
+			if(!is_writeable($sTempDir)) {
+				// @TODO: Sollte man so umbauen, damit das irgendwo initial direkt geprüft wird
+				die('Fatal error while uploading file');
 			}
+
 			foreach((array)$_FILES as $sKey => $mItems) {
 				if(!is_array($mItems['name'])) {
 					$sTarget = $sTempDir . '/' . $mItems['name'];
 					if(move_uploaded_file($mItems['tmp_name'], $sTarget)) {
 						$aFiles[$sKey] = $sTarget;
 					}
-				}
-				else {
-					self::__prepareFiles($mItems['name'], $mItems['tmp_name'], $aFiles[$sKey], $sTempDir);
+				} else {
+					self::prepareFiles($mItems['name'], $mItems['tmp_name'], $aFiles[$sKey], $sTempDir);
 				}
 			}
+
 		}
 
 		$oSnoopy->cookies = $_COOKIE;
@@ -230,6 +229,10 @@ class Thebing_WP_Snippet {
 			}
 		}
 
+		if(!empty($aFiles)) {
+			self::unlinkFiles($aFiles);
+		}
+
 		return $sResults;
 	}
 
@@ -249,12 +252,26 @@ class Thebing_WP_Snippet {
 	}
 
 	/**
+	 * @param array $aFiles
+	 */
+	private static function unlinkFiles(&$aFiles) {
+
+		foreach((array)$aFiles as $mKey => $mFile) {
+			if(is_array($mFile)) {
+				self::unlinkFiles($aFiles[$mKey]);
+			} else if(is_file($mFile)) {
+				unlink($mFile);
+			}
+		}
+	}
+
+	/**
 	 * @param $mItems
 	 * @param $mTmpItems
 	 * @param $aFiles
 	 * @param $sTempDir
 	 */
-	private static function __prepareFiles($mItems, $mTmpItems, &$aFiles, $sTempDir) {
+	private static function prepareFiles($mItems, $mTmpItems, &$aFiles, $sTempDir) {
 
 		foreach((array)$mItems as $sKey => $aItems) {
 			if(!is_array($aItems)) {
@@ -262,9 +279,8 @@ class Thebing_WP_Snippet {
 				if(move_uploaded_file($mTmpItems[$sKey], $sTarget)) {
 					$aFiles[$sKey] = $sTarget;
 				}
-			}
-			else {
-				self::__prepareFiles($mItems[$sKey], $mTmpItems[$sKey], $aFiles[$sKey], $sTempDir);
+			} else {
+				self::prepareFiles($mItems[$sKey], $mTmpItems[$sKey], $aFiles[$sKey], $sTempDir);
 			}
 		}
 	}
