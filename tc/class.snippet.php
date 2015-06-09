@@ -3,12 +3,8 @@
 require(dirname(__FILE__) . "/Snoopy.class.php");
 
 /**
- * Snippet class
- *
- * ACHTUNG: Die Snippet-Klasse unterstützt aktuell keine PHP-Sessions!
- * Das könnte aber noch ergänzt werden
- *
- * @author	plan-i GmbH <info@plan-i.de>
+ * Class Thebing_Snippet
+ * @author Thebing Services GmbH
  */
 class Thebing_Snippet {
 
@@ -162,7 +158,6 @@ class Thebing_Snippet {
 
 				$sTempDir = sys_get_temp_dir();
 				if(!is_writeable($sTempDir)) {
-					// @TODO: Sollte man so umbauen, damit das irgendwo initial direkt geprüft wird
 					die('Fatal error while uploading file');
 				}
 
@@ -181,11 +176,9 @@ class Thebing_Snippet {
 
 			}
 
-			// Website Session ID entfernen
 			unset($_COOKIE['PHPSESSID']);
 			unset($aVariables['PHPSESSID']);
 
-			// Session ID von der API übermitteln
 			if(
 				isset($_COOKIE['thebing_snippet_session_id']) &&
 				isset($_COOKIE['thebing_snippet_session_name'])
@@ -195,9 +188,7 @@ class Thebing_Snippet {
 
 			// Add cookie data to snoopy request
 			$oSnoopy->cookies = $_COOKIE;
-
 			$oSnoopy->set_submit_multipart();
-
 			$oSnoopy->submit($sUrl, $aVariables, $aFiles);
 
 			if(
@@ -221,7 +212,6 @@ class Thebing_Snippet {
 					}
 				}
 
-				// OB beenden
 				while(ob_get_level() > 0) {
 					ob_end_clean();
 				}
@@ -244,14 +234,12 @@ class Thebing_Snippet {
 
 			}
 
-			// Set cookies
 			foreach((array)$oSnoopy->cookies as $sKey=>$mValue) {
 				$bIsMagicQuotes = get_magic_quotes_gpc();
 				if($bIsMagicQuotes) {
 					$mValue = stripslashes($mValue);
 				}
 				if(is_scalar($mValue)) {
-					// Auf keinen Fall Cookies überschreiben
 					if(
 						!isset($_COOKIE[$sKey]) &&
 						$sKey != 'PHPSESSID'
@@ -354,8 +342,6 @@ class Thebing_Snippet {
 	}
 
 	/**
-	 * Manipulate combination settings
-	 *
 	 * @param string $sKey
 	 * @param mixed $mValue
 	 * @return Thebing_Snippet

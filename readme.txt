@@ -3,7 +3,7 @@ Contributors: jprangenberg1
 Tags: thebing, management, school, agency, software
 Requires at least: 3.9
 Tested up to: 3.9.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,4 +31,4 @@ The plugin allows you to link the forms of the Thebing Management School & Agenc
 Optional attributes are currencyid and currencyiso!
 
 = If you want to show the registration form add: =
-[thebingsnippet type="tsRegistrationForm" server="https://schoolname.thebing.com" key="1-KEY-0123456789" language="en"]
+[thebingsnippet type="tsRegistrationForm" server="https://schoolname.thebing.com" key="1=KEY-0123456789" language="en"]

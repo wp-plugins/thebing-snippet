@@ -3,7 +3,7 @@
  * Plugin Name: Thebing Snippet
  * Plugin URI: http://www.thebing.com
  * Description: The plugin links the forms for thebing management school & agency software
- * Version: 1.0
+ * Version: 1.1
  * Author: Thebing Services GmbH
  * Author URI: http://www.thebing.com
  * License: GPLv2
@@ -32,7 +32,7 @@ add_shortcode('thebingsnippet', 'Thebing_WP_Snippet::getContent');
 class Thebing_WP_Snippet {
 
 	/**
-	 * Verfügbare Typen: tsFeedback, tcFeedback, tsPlacementTest, tsRegistrationForm
+	 * Verfügbare Typen: tsFeedback, tsPlacementTest, tsRegistrationForm, default
 	 * Verfügbare Attribute: type, server, combinationkey, templatekey, key, language, currencyid, currencyiso
 	 *
 	 * @param array $attributes
@@ -164,7 +164,6 @@ class Thebing_WP_Snippet {
 
 			$sTempDir = sys_get_temp_dir();
 			if(!is_writeable($sTempDir)) {
-				// @TODO: Sollte man so umbauen, damit das irgendwo initial direkt geprüft wird
 				die('Fatal error while uploading file');
 			}
 
@@ -263,6 +262,7 @@ class Thebing_WP_Snippet {
 				unlink($mFile);
 			}
 		}
+
 	}
 
 	/**
@@ -283,6 +283,7 @@ class Thebing_WP_Snippet {
 				self::prepareFiles($mItems[$sKey], $mTmpItems[$sKey], $aFiles[$sKey], $sTempDir);
 			}
 		}
+
 	}
 
 }
