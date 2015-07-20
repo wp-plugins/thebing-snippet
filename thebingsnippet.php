@@ -184,7 +184,7 @@ class Thebing_WP_Snippet {
 		unset($aSubmitVars['PHPSESSID']);
 
 		$oSnoopy->set_submit_multipart();
-		$oSnoopy->submit($sServer . '/system/extensions/thebing_registration_form.php?'.$_SERVER['QUERY_STRING'], $aSubmitVars);
+		$oSnoopy->submit($sServer . '/system/extensions/thebing_registration_form.php?'.$_SERVER['QUERY_STRING'], $aSubmitVars, $aFiles);
 		$sResults = $oSnoopy->results;
 
 		if(
